@@ -1,0 +1,17 @@
+{
+  "name": "eat-wat",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "bun run src/server.ts",
+    "dev": "bun --watch run src/server.ts",
+    "mock": "LLU_MOCK=1 DATA_DIR=./data-mock bun run src/server.ts",
+    "test": "bun test",
+    "check": "bunx tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/bun": "1.2.17",
+    "typescript": "5.8.3"
+  }
+}

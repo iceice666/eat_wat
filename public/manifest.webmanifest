@@ -1,0 +1,10 @@
+{
+  "name": "吃了什麼 — 飲食與血糖",
+  "short_name": "吃了什麼",
+  "lang": "zh-Hant-TW",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4f4f1",
+  "theme_color": "#2a78d6",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>吃了什麼</title>
+  <meta name="theme-color" content="#fcfcfb" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1a1a19" media="(prefers-color-scheme: dark)">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/icon.svg">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">吃了什麼</div>
+    <div class="now" id="now" aria-live="polite">
+      <span class="now-val" id="now-val">—</span>
+      <span class="now-meta" id="now-meta"></span>
+    </div>
+    <span class="sync-dot" id="sync-dot" title="同步狀態"></span>
+  </header>
+
+  <nav class="tabbar" aria-label="主要">
+    <button data-view="day" class="on">每日</button>
+    <button data-view="analysis">分析</button>
+    <button data-view="settings">設定</button>
+  </nav>
+
+  <main>
+    <!-- ===== Daily ===== -->
+    <section id="view-day" class="view active" aria-label="每日">
+      <div class="daynav">
+        <button class="icon-btn" id="day-prev" aria-label="前一天">‹</button>
+        <button class="day-label" id="day-label"></button>
+        <button class="icon-btn" id="day-next" aria-label="後一天">›</button>
+        <input type="date" id="day-picker" class="visually-hidden" tabindex="-1">
+      </div>
+      <div class="tiles" id="day-tiles"></div>
+      <div class="card chart-card">
+        <div class="chart-head">
+          <h2>血糖與飲食</h2>
+          <span class="muted small">mg/dL · 目標範圍 70–180</span>
+        </div>
+        <div class="chart" id="day-chart"></div>
+        <p class="empty-hint" id="day-chart-empty" hidden></p>
+      </div>
+      <h2 class="section-title">這天吃了</h2>
+      <div id="day-meals" class="meal-list"></div>
+    </section>
+
+    <!-- ===== Analysis ===== -->
+    <section id="view-analysis" class="view" aria-label="分析">
+      <div class="toolbar">
+        <div class="seg" role="group" aria-label="期間" id="range-seg">
+          <button data-days="7">7 天</button>
+          <button data-days="14" class="on">14 天</button>
+          <button data-days="30">30 天</button>
+          <button data-days="90">90 天</button>
+        </div>
+        <input type="search" id="an-filter" placeholder="搜尋餐點，例如：拉麵" aria-label="搜尋餐點">
+      </div>
+      <div class="card chart-card">
+        <div class="chart-head">
+          <h2>餐後血糖對照</h2>
+          <span class="muted small">相對餐前的變化（mg/dL）· 勾選下方餐點比較，最多 8 筆</span>
+        </div>
+        <div class="legend" id="overlay-legend"></div>
+        <div class="chart" id="overlay-chart"></div>
+        <p class="empty-hint" id="overlay-empty">勾選下方表格的餐點來疊圖比較。</p>
+      </div>
+      <div class="card table-card">
+        <div class="table-wrap">
+          <table class="an-table" id="an-table">
+            <thead>
+              <tr>
+                <th></th>
+                <th data-sort="ts">時間</th>
+                <th data-sort="title">餐點</th>
+                <th data-sort="carbs" class="num">醣類 g</th>
+                <th data-sort="baseline" class="num">餐前</th>
+                <th data-sort="peak" class="num">高峰</th>
+                <th data-sort="delta" class="num">上升</th>
+                <th data-sort="minutesToPeak" class="num">到高峰</th>
+                <th data-sort="delta2h" class="num">2h 變化</th>
+                <th data-sort="iauc" class="num" title="餐後 3 小時、高於餐前值的面積">iAUC</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p class="empty-hint" id="an-empty" hidden>這段期間沒有飲食紀錄。</p>
+        <p class="muted small foot">⚠ 表示資料不完整（缺資料、餐前沒有讀值、前後 3 小時內有其他餐），數字僅供參考。iAUC 單位為 mg/dL·小時。</p>
+      </div>
+    </section>
+
+    <!-- ===== Settings ===== -->
+    <section id="view-settings" class="view" aria-label="設定">
+      <div class="card">
+        <h2>LibreLinkUp 同步</h2>
+        <dl class="kv" id="sync-info"></dl>
+        <div class="row">
+          <button class="btn" id="sync-now">立即同步</button>
+        </div>
+        <p class="muted small">
+          使用 Abbott LibreLinkUp（追蹤者 App）的非官方 API。graph 只回傳最近約 12 小時，伺服器要一直開著才能累積資料；更早的資料請用下方 CSV 匯入補齊。
+        </p>
+      </div>
+      <div class="card">
+        <h2>匯入 LibreView CSV</h2>
+        <p class="small">到 <b>libreview.com</b> 登入 → 右上角「下載血糖資料」→ 上傳下載的 CSV。與已同步資料重疊的時段會自動略過。</p>
+        <form id="csv-form" class="row">
+          <input type="file" id="csv-file" accept=".csv,text/csv" required>
+          <button class="btn" type="submit">匯入</button>
+        </form>
+        <p class="small" id="csv-result" role="status"></p>
+      </div>
+      <div class="card">
+        <h2>資料</h2>
+        <dl class="kv" id="data-info"></dl>
+      </div>
+    </section>
+  </main>
+
+  <button class="fab" id="fab" aria-label="記錄飲食">＋ 記錄飲食</button>
+
+
+  <!-- Meal form -->
+  <dialog id="meal-dialog">
+    <form id="meal-form" method="dialog">
+      <h2 id="meal-form-title">記錄飲食</h2>
+      <label>時間<input type="datetime-local" name="ts" required></label>
+      <div class="kinds" role="radiogroup" aria-label="餐別">
+        <label><input type="radio" name="kind" value="早餐">早餐</label>
+        <label><input type="radio" name="kind" value="午餐">午餐</label>
+        <label><input type="radio" name="kind" value="晚餐">晚餐</label>
+        <label><input type="radio" name="kind" value="點心">點心</label>
+        <label><input type="radio" name="kind" value="飲料">飲料</label>
+        <label><input type="radio" name="kind" value="宵夜">宵夜</label>
+      </div>
+      <label>吃了什麼<input type="text" name="title" required maxlength="200" placeholder="例如：牛肉麵＋燙青菜" autocomplete="off" list="title-suggest"></label>
+      <datalist id="title-suggest"></datalist>
+      <label>醣類（克，選填）<input type="number" name="carbs" min="0" max="1000" step="0.1" inputmode="decimal"></label>
+      <label>備註<textarea name="note" rows="2" maxlength="2000" placeholder="份量、運動、心情…"></textarea></label>
+      <label>照片<input type="file" name="photo" accept="image/*"></label>
+      <div class="photo-cur" id="photo-cur" hidden>
+        <img alt="目前的照片"><label class="inline"><input type="checkbox" name="removePhoto" value="1">移除照片</label>
+      </div>
+      <p class="form-error" id="meal-error" role="alert"></p>
+      <div class="row end">
+        <button type="button" class="btn ghost" id="meal-cancel">取消</button>
+        <button type="submit" class="btn primary" id="meal-save">儲存</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Meal detail -->
+  <dialog id="detail-dialog">
+    <div class="detail">
+      <div class="detail-head">
+        <div>
+          <div class="muted small" id="d-when"></div>
+          <h2 id="d-title"></h2>
+        </div>
+        <button class="icon-btn" id="d-close" aria-label="關閉">✕</button>
+      </div>
+      <img id="d-photo" class="d-photo" alt="" hidden>
+      <p id="d-note" class="small"></p>
+      <div class="chart" id="d-chart"></div>
+      <div class="tiles" id="d-tiles"></div>
+      <p class="small warn" id="d-flags"></p>
+      <div class="row end">
+        <button class="btn ghost danger" id="d-delete">刪除</button>
+        <button class="btn" id="d-edit">編輯</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div class="tooltip" id="tooltip" role="tooltip" hidden></div>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
