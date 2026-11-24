@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- API 29–30 equivalent of data_extraction_rules.xml (cloud backup). -->
+<full-backup-content>
+    <exclude domain="sharedpref" path="secure.xml" />
+    <exclude domain="file" path="photos/" />
+</full-backup-content>

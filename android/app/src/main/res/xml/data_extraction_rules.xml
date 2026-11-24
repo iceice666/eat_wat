@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- API 31+. Credentials are encrypted with a Keystore key that never leaves this
+     device, so they are never backed up. Photos are excluded from cloud backup
+     (25 MB quota) but move with a device-to-device transfer. -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="secure.xml" />
+        <exclude domain="file" path="photos/" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="secure.xml" />
+    </device-transfer>
+</data-extraction-rules>
